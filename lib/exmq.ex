@@ -1,6 +1,19 @@
 defmodule Exmq do
   use Application
 
+  unless Application.get_env(:exmq, Exmq) do
+    raise "Exmq is not configured"
+  end
+
+  unless  Keyword.get(Application.get_env(:exmq, Exmq), :handler) do
+    raise "Exmq requires a handler"
+  end
+
+  def config, do: Application.get_env(:exmq, Exmq)
+
+  def config(key, default \\ nil), do: config() |> Keyword.get(key, default)
+
+
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -17,5 +30,16 @@ defmodule Exmq do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Exmq.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  def send(queue, msg) do
+    {:ok, connection} = AMQP.Connection.open
+    {:ok, channel} = AMQP.Channel.open(connection)
+    AMQP.Queue.declare(channel, queue)
+    AMQP.Basic.publish(channel, "", queue, msg)
+    AMQP.Connection.close(connection)
+
+    handler = config(:handler)
+    handler.on_send(msg)
   end
 end

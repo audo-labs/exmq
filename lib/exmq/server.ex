@@ -1,17 +1,7 @@
 defmodule Exmq.Server do
   use GenServer
 
-  unless Application.get_env(:exmq, Exmq) do
-    raise "Exmq is not configured"
-  end
-
-  unless  Keyword.get(Application.get_env(:exmq, Exmq), :handler) do
-    raise "Exmq requires a handler"
-  end
-
-  def config, do: Application.get_env(:exmq, Exmq)
-
-  def config(key, default \\ nil), do: config() |> Keyword.get(key, default)
+  import Exmq, only: [config: 1]
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -35,9 +25,9 @@ defmodule Exmq.Server do
     {:reply, :ok, h, t}
   end
 
-  def handle_cast({:agent, payload}, state) do
+  def handle_cast(payload, state) do
     handler = config(:handler)
-    handler.on_receive(:agent, payload)
+    handler.on_receive(payload)
 
     {:noreply, :ok, [payload | state]}
   end
@@ -45,7 +35,7 @@ defmodule Exmq.Server do
   def wait_for_messages do
     receive do
       {:basic_deliver, payload, _meta} ->
-        GenServer.cast(__MODULE__, {:agent, payload})
+        GenServer.cast(__MODULE__, payload)
         wait_for_messages
     end
   end
