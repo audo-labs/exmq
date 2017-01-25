@@ -33,7 +33,8 @@ defmodule Exmq do
   end
 
   def send(queue, msg) do
-    {:ok, connection} = AMQP.Connection.open
+    opts = config(:amqp) || []
+    {:ok, connection} = AMQP.Connection.open(opts)
     {:ok, channel} = AMQP.Channel.open(connection)
     AMQP.Queue.declare(channel, queue)
     AMQP.Basic.publish(channel, "", queue, msg)

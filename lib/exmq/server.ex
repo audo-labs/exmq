@@ -8,7 +8,10 @@ defmodule Exmq.Server do
   end
 
   def init(_opts) do
-    {:ok, connection} = AMQP.Connection.open
+    opts = config(:amqp) || []
+    require Logger
+    Logger.debug("OPTS: #{inspect opts}")
+    {:ok, connection} = AMQP.Connection.open(opts)
     {:ok, channel} = AMQP.Channel.open(connection)
     AMQP.Queue.declare(channel, "hello")
 
