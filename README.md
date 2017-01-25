@@ -24,7 +24,8 @@ The package can be installed as:
     ```elixir
     config :exmq, Exmq,
         handler: MyApp.ExmqHandler,
-        queue: <the amqp queue to listen>
+        queue: <the amqp queue to listen>,
+        amqp: [host: <hostname>]
     ```
 ## To test the application for now you can use this:
 
