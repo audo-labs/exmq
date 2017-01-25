@@ -20,6 +20,9 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
+config :exmq, Exmq,
+  queue: "hello",
+  handler: Exmq.LoggerHandler
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

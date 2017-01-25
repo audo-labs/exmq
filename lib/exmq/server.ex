@@ -1,36 +1,51 @@
 defmodule Exmq.Server do
   use GenServer
-  require Logger
+
+  unless Application.get_env(:exmq, Exmq) do
+    raise "Exmq is not configured"
+  end
+
+  unless  Keyword.get(Application.get_env(:exmq, Exmq), :handler) do
+    raise "Exmq requires a handler"
+  end
+
+  def config, do: Application.get_env(:exmq, Exmq)
+
+  def config(key, default \\ nil), do: config() |> Keyword.get(key, default)
 
   def start_link(opts \\ []) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def init(opts) do
-    Logger.debug("start_link called with #{opts}")
+  def init(_opts) do
     {:ok, connection} = AMQP.Connection.open
     {:ok, channel} = AMQP.Channel.open(connection)
     AMQP.Queue.declare(channel, "hello")
-    IO.puts " [*] Waiting for messages. To exit press CTRL+C, CTRL+C"
 
     {:ok, pid} = Task.start_link(fn -> wait_for_messages end)
     :global.register_name(:receiver, pid)
 
-    AMQP.Basic.consume(channel, "hello", pid, no_ack: true)
+    queue = config(:queue)
+    AMQP.Basic.consume(channel, queue, pid, no_ack: true)
 
     {:ok, []}
   end
 
-  def handle_call(:agent, _from, []) do
-    Logger.debug("received!")
-    {:reply, :ok, []}
+  def handle_call(:agent, _from, [h|t]) do
+    {:reply, :ok, h, t}
+  end
+
+  def handle_cast({:agent, payload}, state) do
+    handler = config(:handler)
+    handler.on_receive(:agent, payload)
+
+    {:noreply, :ok, [payload | state]}
   end
 
   def wait_for_messages do
     receive do
       {:basic_deliver, payload, _meta} ->
-        IO.puts " [x] Received #{payload}"
-        GenServer.call(__MODULE__, :agent)
+        GenServer.cast(__MODULE__, {:agent, payload})
         wait_for_messages
     end
   end
