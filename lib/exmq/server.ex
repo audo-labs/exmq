@@ -9,16 +9,15 @@ defmodule Exmq.Server do
 
   def init(_opts) do
     opts = config(:amqp) || []
-    require Logger
-    Logger.debug("OPTS: #{inspect opts}")
+    queue = config(:queue)
+
     {:ok, connection} = AMQP.Connection.open(opts)
     {:ok, channel} = AMQP.Channel.open(connection)
-    AMQP.Queue.declare(channel, "hello")
+    AMQP.Queue.declare(channel, queue)
 
     {:ok, pid} = Task.start_link(fn -> wait_for_messages end)
     :global.register_name(:receiver, pid)
 
-    queue = config(:queue)
     AMQP.Basic.consume(channel, queue, pid, no_ack: true)
 
     {:ok, []}

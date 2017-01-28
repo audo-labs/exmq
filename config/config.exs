@@ -21,9 +21,9 @@ use Mix.Config
 #     config :logger, level: :info
 #
 config :exmq, Exmq,
-  queue: "leoris",
-  handler: Exmq.LoggerHandler,
-  amqp: [host: "192.168.0.105"]
+  queue: "aeoris",
+  handler: Exmq.LoggerHandler#,
+  #amqp: [host: "192.168.0.105"]
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
