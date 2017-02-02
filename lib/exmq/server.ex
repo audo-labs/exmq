@@ -1,6 +1,8 @@
 defmodule Exmq.Server do
   use GenServer
 
+  require Logger
+
   import Exmq, only: [config: 1]
 
   def start_link(opts \\ []) do
@@ -11,16 +13,19 @@ defmodule Exmq.Server do
     opts = config(:amqp) || []
     queue = config(:queue)
 
-    {:ok, connection} = AMQP.Connection.open(opts)
-    {:ok, channel} = AMQP.Channel.open(connection)
-    AMQP.Queue.declare(channel, queue)
+    case AMQP.Connection.open(opts) do
+      {:ok, connection} ->
+        {:ok, channel} = AMQP.Channel.open(connection)
+        AMQP.Queue.declare(channel, queue)
+        {:ok, pid} = Task.start_link(fn -> wait_for_messages end)
+        :global.register_name(:receiver, pid)
+        AMQP.Basic.consume(channel, queue, pid, no_ack: true)
+        {:ok, []}
+      {:error, err} ->
+        Logger.error("Exmq: can't connect to rabbitmq broker: #{inspect err}")
+        {:ok, []}
+    end
 
-    {:ok, pid} = Task.start_link(fn -> wait_for_messages end)
-    :global.register_name(:receiver, pid)
-
-    AMQP.Basic.consume(channel, queue, pid, no_ack: true)
-
-    {:ok, []}
   end
 
   def handle_call(:agent, _from, [h|t]) do
