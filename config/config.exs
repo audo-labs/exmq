@@ -21,7 +21,7 @@ use Mix.Config
 #     config :logger, level: :info
 #
 config :exmq, Exmq,
-  queue: "aeoris",
+  queues: ["queue1", "queue2"],
   handler: Exmq.LoggerHandler#,
   #amqp: [host: "192.168.0.105"]
 
