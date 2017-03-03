@@ -47,7 +47,7 @@ defmodule Exmq.Server do
       {:basic_deliver, payload, meta} ->
         message = %{queue: meta.routing_key, payload: payload}
         GenServer.cast(__MODULE__, message)
-        wait_for_messages
+        wait_for_messages()
     end
   end
 end
