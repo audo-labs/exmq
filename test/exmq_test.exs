@@ -7,8 +7,8 @@ defmodule ExmqTest do
   end
 
   test "load config from env" do
-    System.put_env("HOST", "deadbeef")
-    assert Exmq.config(:amqp) == [host: "deadbeef"]
+    System.put_env("HOST", "127.0.0.1")
+    assert Exmq.config(:amqp_env) == [host: "127.0.0.1"]
   end
 
   test "load config" do

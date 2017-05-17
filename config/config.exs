@@ -22,8 +22,8 @@ use Mix.Config
 #
 config :exmq, Exmq,
   queues: ["queue1", "queue2"],
-  handler: Exmq.LoggerHandler#,
-  #amqp: [host: "192.168.0.105"]
+  handler: Exmq.LoggerHandler,
+  amqp: [host: "localhost"]
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
