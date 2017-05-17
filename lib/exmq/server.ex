@@ -11,7 +11,7 @@ defmodule Exmq.Server do
 
   def init(_opts) do
     opts = config(:amqp) || []
-    queues = config(:queues)
+    queues = config(:queues) || []
 
     case AMQP.Connection.open(opts) do
       {:ok, connection} ->
