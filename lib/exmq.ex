@@ -9,9 +9,14 @@ defmodule Exmq do
     raise "Exmq requires a handler"
   end
 
-  def config, do: Application.get_env(:exmq, Exmq)
-
-  def config(key, default \\ nil), do: config() |> Keyword.get(key, default)
+  def config(key) do
+    case Application.get_env(:exmq, key) do
+      {:system, value} ->
+        System.get_env(value)
+      value ->
+        value
+    end
+  end
 
 
   # See http://elixir-lang.org/docs/stable/elixir/Application.html
@@ -40,7 +45,10 @@ defmodule Exmq do
     AMQP.Basic.publish(channel, "", queue, msg)
     AMQP.Connection.close(connection)
 
-    handler = config(:handler)
-    handler.on_send(msg)
+    handler().on_send(msg)
+  end
+
+  def handler do
+    config(:handler)
   end
 end

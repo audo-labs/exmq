@@ -9,8 +9,6 @@ defmodule Exmq.Server do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  @handler config(:handler)
-
   def init(_opts) do
     opts = config(:amqp) || []
     queues = config(:queues)
@@ -37,7 +35,7 @@ defmodule Exmq.Server do
   end
 
   def handle_cast(payload, state) do
-    @handler.on_receive(payload)
+    Exmq.handler().on_receive(payload)
 
     {:noreply, :ok, [payload | state]}
   end
