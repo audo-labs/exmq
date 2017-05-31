@@ -17,7 +17,7 @@ defmodule Exmq.Server do
       {:ok, connection} ->
         {:ok, channel} = AMQP.Channel.open(connection)
         for queue <- queues do
-          AMQP.Queue.declare(channel, queue)
+          AMQP.Queue.declare(channel, queue, durable: true)
           {:ok, pid} = Task.start_link(&wait_for_messages/0)
           :global.register_name(:receiver, pid)
           AMQP.Basic.consume(channel, queue, pid, no_ack: true)

@@ -54,11 +54,12 @@ defmodule Exmq do
     opts = config(:amqp) || []
     {:ok, connection} = AMQP.Connection.open(opts)
     {:ok, channel} = AMQP.Channel.open(connection)
-    AMQP.Queue.declare(channel, queue)
-    AMQP.Basic.publish(channel, "", queue, msg)
-    AMQP.Connection.close(connection)
+    AMQP.Queue.declare(channel, queue, durable: true)
+    AMQP.Basic.publish(channel, "", queue, msg, persistent: true)
 
     handler().on_send(msg)
+
+    AMQP.Connection.close(connection)
   end
 
   def handler do
