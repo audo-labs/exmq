@@ -1,6 +1,8 @@
 defmodule Exmq.Server do
   use GenServer
 
+  import Exmq.Config, only: [config: 1]
+
   alias AMQP.Connection
   alias AMQP.Queue
   alias AMQP.Basic
@@ -8,8 +10,6 @@ defmodule Exmq.Server do
   alias AMQP.Exchange
 
   require Logger
-
-  import Exmq, only: [config: 1]
 
   @queues config(:queues) || []
   @amqp_opts config(:amqp) || []
