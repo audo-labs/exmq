@@ -32,29 +32,30 @@ defmodule Exmq do
   end
 
 
-  # See http://elixir-lang.org/docs/stable/elixir/Application.html
-  # for more information on OTP Applications
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
-    # Define workers and child supervisors to be supervised
     children = [
       worker(Exmq.Server, [])
-      # Starts a worker by calling: Exmq.Worker.start_link(arg1, arg2, arg3)
-      # worker(Exmq.Worker, [arg1, arg2, arg3]),
     ]
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Exmq.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
   def send(queue, msg) do
+    queue = "#{config(:root)}.#{queue}"
     opts = config(:amqp) || []
+    root = config(:root)
     {:ok, connection} = AMQP.Connection.open(opts)
     {:ok, channel} = AMQP.Channel.open(connection)
-    AMQP.Queue.declare(channel, queue, durable: true)
+    exchange = "#{root}-exchange"
+    AMQP.Exchange.topic(channel, exchange, durable: true)
+    #AMQP.Queue.declare(channel, queue, durable: true)
+    AMQP.Queue.declare(channel, queue, durable: true,
+                  arguments: [{"x-dead-letter-exchange", :longstr, ""},
+                              {"x-dead-letter-routing-key", :longstr, "test.errors"}])
+    AMQP.Queue.bind(channel, queue, exchange)
     AMQP.Basic.publish(channel, "", queue, msg, persistent: true)
 
     handler().on_send(msg)
