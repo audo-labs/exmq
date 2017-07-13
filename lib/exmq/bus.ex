@@ -10,30 +10,42 @@ defmodule Exmq.Bus do
   @exchange "#{@root}-exchange"
 
   def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, opts, name: __MODULE__)
+    GenServer.start_link(
+      __MODULE__,
+      Keyword.merge(opts, [connected: false, channel: nil]), name: __MODULE__
+    )
   end
 
-  def init(_opts) do
-    connect()
+  def init(state) do
+    connect(state)
   end
 
-  defp connect do
+  def handle_info({:DOWN, _, :process, _pid, _reason}, state) do
+    {:ok, state} = reconnect(state)
+    {:noreply, state}
+  end
+
+  def handle_info(:reconnect, state) do
+    {:ok, state} = reconnect(state)
+    {:noreply, state}
+  end
+
+  defp connect(state) do
     case Connection.open(@amqp_opts) do
       {:ok, conn} ->
         Process.monitor(conn.pid)
         {:ok, chan} = Channel.open(conn)
         Basic.qos(chan, prefetch_count: 10)
         Exchange.topic(chan, @exchange, durable: true)
-        {:ok, chan}
-      {:error, err} ->
-        :timer.sleep(10000)
-        connect()
+        {:ok, Keyword.merge(state, [channel: chan, connected: true])}
+      {:error, _} ->
+        Process.send_after(self(), :reconnect, 10000)
+        {:ok, state}
     end
   end
 
-  def handle_info({:DOWN, _, :process, _pid, _reason}, _) do
-    {:ok, chan} = connect()
-    {:noreply, chan}
+  defp reconnect(state) do
+    connect(Keyword.put(state, :connected, false))
   end
 
 end
