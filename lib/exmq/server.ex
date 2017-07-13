@@ -1,13 +1,8 @@
 defmodule Exmq.Server do
   use GenServer
+  use AMQP
 
   import Exmq.Config, only: [config: 1]
-
-  alias AMQP.Connection
-  alias AMQP.Queue
-  alias AMQP.Basic
-  alias AMQP.Channel
-  alias AMQP.Exchange
 
   require Logger
 

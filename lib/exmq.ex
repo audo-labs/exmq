@@ -1,5 +1,6 @@
 defmodule Exmq do
   use Application
+  use AMQP
 
   import Exmq.Config, only: [config: 1]
 
@@ -26,20 +27,20 @@ defmodule Exmq do
     queue = "#{config(:root)}.#{queue}"
     opts = config(:amqp) || []
     root = config(:root)
-    {:ok, connection} = AMQP.Connection.open(opts)
-    {:ok, channel} = AMQP.Channel.open(connection)
+    {:ok, connection} = Connection.open(opts)
+    {:ok, channel} = Channel.open(connection)
     exchange = "#{root}-exchange"
-    AMQP.Exchange.topic(channel, exchange, durable: true)
-    #AMQP.Queue.declare(channel, queue, durable: true)
-    AMQP.Queue.declare(channel, queue, durable: true,
+    Exchange.topic(channel, exchange, durable: true)
+    #Queue.declare(channel, queue, durable: true)
+    Queue.declare(channel, queue, durable: true,
                   arguments: [{"x-dead-letter-exchange", :longstr, ""},
                               {"x-dead-letter-routing-key", :longstr, "test.errors"}])
-    AMQP.Queue.bind(channel, queue, exchange)
-    AMQP.Basic.publish(channel, "", queue, msg, persistent: true)
+    Queue.bind(channel, queue, exchange)
+    Basic.publish(channel, "", queue, msg, persistent: true)
 
     handler().on_send(msg)
 
-    AMQP.Connection.close(connection)
+    Connection.close(connection)
   end
 
   def handler do
