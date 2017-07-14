@@ -26,9 +26,6 @@ defmodule Exmq.Consumer do
 
       # return some code to inject in the caller
       def init(opts) do
-        IO.inspect(opts)
-        IO.inspect(@opts)
-        IO.inspect(@name)
         Exmq.Bus.consume(opts[:topic], self())
         {:ok, opts}
       end
