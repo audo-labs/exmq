@@ -1,4 +1,8 @@
 defmodule Exmq.Consumer do
+
+  @callback handle_message({message :: term, meta :: term}, state :: term) ::
+    :ok | {:ok| value :: term}
+
   defmacro __using__(opts) do
     # do something with opts
     quote location: :keep, bind_quoted: [opts: opts] do
@@ -35,10 +39,16 @@ defmodule Exmq.Consumer do
         {:noreply, chan}
       end
 
-      def handle_info({:basic_deliver, message, _meta}, state) do
-        IO.inspect("#{@name} received #{message}")
+      def handle_info({:basic_deliver, message, meta}, state) do
+        handle_message({message, meta}, state)
         {:noreply, state}
       end
+
+      def handle_message({message, meta}, state) do
+        :ok
+      end
+
+      defoverridable handle_message: 2
     end
   end
 
