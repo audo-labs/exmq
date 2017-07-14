@@ -1,10 +1,9 @@
 defmodule Exmq.Consumer do
 
   @callback handle_message({message :: term, meta :: term}, state :: term) ::
-    :ok | {:ok| value :: term}
+    {:ok | state :: term}
 
   defmacro __using__(opts) do
-    # do something with opts
     quote location: :keep, bind_quoted: [opts: opts] do
       use GenServer
       use AMQP
@@ -28,7 +27,6 @@ defmodule Exmq.Consumer do
       @name spec[:id]
       @opts opts
 
-      # return some code to inject in the caller
       def init(opts) do
         Exmq.Bus.consume(opts[:topic], self())
         {:ok, opts}
@@ -45,10 +43,11 @@ defmodule Exmq.Consumer do
       end
 
       def handle_message({message, meta}, state) do
-        :ok
+        {:ok, state}
       end
 
       defoverridable handle_message: 2
+
     end
   end
 
