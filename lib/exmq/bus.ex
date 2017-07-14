@@ -6,8 +6,8 @@ defmodule Exmq.Bus do
   require Logger
 
   @amqp_opts config(:amqp) || []
-  @root config(:root)
-  @errors "#{config(:root)}.errors"
+  @root config(:root_topic)
+  @errors "#{@root}.errors"
   @exchange "#{@root}-exchange"
 
   #

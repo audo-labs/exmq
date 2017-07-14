@@ -32,7 +32,7 @@ defmodule Exmq.Consumer do
       end
 
       def init(opts) do
-        Exmq.Bus.consume(opts[:topic], self())
+        Exmq.Bus.consume("#{opts[:topic]}", self())
         {:ok, opts}
       end
 
