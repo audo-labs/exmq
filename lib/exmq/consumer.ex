@@ -27,6 +27,10 @@ defmodule Exmq.Consumer do
       @name spec[:id]
       @opts opts
 
+      def start_link(opts \\ []) do
+        GenServer.start_link(__MODULE__, Keyword.merge(@opts, opts), name: @name)
+      end
+
       def init(opts) do
         Exmq.Bus.consume(opts[:topic], self())
         {:ok, opts}
