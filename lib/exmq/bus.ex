@@ -46,9 +46,7 @@ defmodule Exmq.Bus do
   end
 
   def handle_cast({:send, topic, message}, state) do
-    IO.inspect(state[:channel])
     topic = "#{@root}.#{topic}"
-    IO.inspect(topic)
     Basic.publish(state[:channel], @exchange, topic, message, persistent: true)
     {:noreply, state}
   end

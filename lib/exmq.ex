@@ -17,7 +17,8 @@ defmodule Exmq do
 
     children = [
       worker(Exmq.Bus, []),
-      worker(Exmq.Server, [])
+      worker(Exmq.Consumer, [[topic: "#"]], id: "1"),
+      worker(Exmq.Consumer, [[topic: "selected"]], id: "2")
     ]
 
     opts = [strategy: :one_for_one, name: Exmq.Supervisor]
