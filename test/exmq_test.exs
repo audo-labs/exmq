@@ -14,6 +14,6 @@ defmodule ExmqTest do
   end
 
   test "send message to test.queue1" do
-    assert :ok == Exmq.send("queue1", "test")
+    assert :ok == Exmq.Bus.send("queue1", "test")
   end
 end
