@@ -16,9 +16,9 @@ defmodule Exmq do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Exmq.Bus, []),
-      worker(Exmq.ConsumerTest, []),
-      worker(Exmq.ConsumerTest2, [])
+      worker(Exmq.Bus, [])#,
+      #worker(Exmq.ConsumerTest, []),
+      #worker(Exmq.ConsumerTest2, [])
     ]
 
     opts = [strategy: :one_for_one, name: Exmq.Supervisor]
